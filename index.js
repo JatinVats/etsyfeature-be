@@ -26,7 +26,11 @@ app.post('/api/similarKeywords', async (req, res) => {
     const originalListing = originalSearchResults.count;
     console.log(originalListing)
 
-  
+    const maxResultsPerPage = 100; // Adjust based on Etsy's API limits
+    const totalPages = 1;
+    const suggestedTags = new Set();
+
+    for (let page = 1; page <= totalPages; page++) {
     // Step 1: Search for listings containing the keyword
     const searchUrl = `https://openapi.etsy.com/v3/application/listings/active?keywords=${encodeURIComponent(keyword)}`;
     const searchResponse = await fetch(searchUrl, {
@@ -37,7 +41,7 @@ app.post('/api/similarKeywords', async (req, res) => {
     });
     const searchResults = await searchResponse.json();
     // Step 2: Extract tags from the search results
-    const suggestedTags = new Set();
+    
     searchResults.results.forEach(listing => {
       listing.tags.forEach(tag => {
         // Check if the tag contains the original keyword
@@ -46,7 +50,7 @@ app.post('/api/similarKeywords', async (req, res) => {
         }
       });
     });
-
+  }
     // Step 3: Fetch search volume data for each suggested tag
     const searchVolumeData = {};
     const powerData = {}
