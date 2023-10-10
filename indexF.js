@@ -3,7 +3,6 @@ import cors from "cors";
 import express from "express";
 
 
-
 const app = express();
 const port = 3001;
 
@@ -41,16 +40,27 @@ app.post('/api/similarKeywords', async (req, res) => {
     searchResults.results.forEach(listing => {
       listing.tags.forEach(tag => {
         // Check if the tag contains the original keyword
-        if (tag.toLowerCase().includes(keyword.toLowerCase()) && suggestedTags.size < 395000) {
+        if (tag.toLowerCase().includes(keyword.toLowerCase())) {
           suggestedTags.add(tag);
         }
       });
     });
 
+    // suggestedTags.sort((tag1, tag2) => {
+    //     const count1 = searchResults.results.filter(listing => listing.tags.includes(tag1)).length;
+    //     const count2 = searchResults.results.filter(listing => listing.tags.includes(tag2)).length;
+    //     return count2 - count1;
+    //   });
+
+      const topTags = suggestedTags;
+
+
+
+
     // Step 3: Fetch search volume data for each suggested tag
     const searchVolumeData = {};
     const powerData = {}
-    for (const suggestedTag of suggestedTags) {
+    for (const suggestedTag of topTags) {
       const tagSearchUrl = `https://openapi.etsy.com/v3/application/listings/active?keywords=${encodeURIComponent(suggestedTag)}`;
       const tagSearchResponse = await fetch(tagSearchUrl, {
         method: 'GET',
@@ -65,8 +75,8 @@ app.post('/api/similarKeywords', async (req, res) => {
       powerData[suggestedTag] = Math.trunc(TagPower*4399);
       console.log(powerData)
     }
-  
-    res.json({ suggestedKeywords: [...suggestedTags], searchVolumeData, powerData });
+
+    res.json({ suggestedKeywords: [...topTags], searchVolumeData, powerData });
   } catch (error) {
     console.error('Error:', error);
     res.status(500).json({ error: 'An error occurred' });
